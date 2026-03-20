@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FAN32">
+<meta name="theme-color" content="#0C0E12">
+<title>FAN32 Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0C0E12;
+  --card: #14171E;
+  --card-hover: #1A1E28;
+  --border: #232830;
+  --accent: #E8572A;
+  --accent-glow: rgba(232,87,42,0.25);
+  --accent-soft: #F2845C;
+  --green: #34D399;
+  --green-glow: rgba(52,211,153,0.2);
+  --red: #EF4444;
+  --red-glow: rgba(239,68,68,0.15);
+  --gold: #F59E0B;
+  --gold-glow: rgba(245,158,11,0.2);
+  --text1: #F0F2F5;
+  --text2: #8B93A1;
+  --text3: #545C6A;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { 
+  height: 100%; 
+  overflow: hidden;
+  background: var(--bg); 
+  color: var(--text1);
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+#app {
+  max-width: 480px;
+  margin: 0 auto;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+.ambient {
+  position: fixed; top: -120px; left: 50%; transform: translateX(-50%);
+  width: 420px; height: 420px; border-radius: 50%;
+  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+.screen {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+  z-index: 1;
+  padding: 20px 16px;
+  padding-bottom: 100px;
+}
+.screen::-webkit-scrollbar { display: none; }
+
+/* ── Tab Bar ────────────────────────────── */
+.tab-bar {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: #0F1117;
+  border-top: 1px solid var(--border);
+  padding: 8px 0;
+  padding-bottom: max(10px, var(--safe-b));
+  position: relative;
+  z-index: 50;
+  flex-shrink: 0;
+}
+.tab-btn {
+  background: none; border: none; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  color: var(--text3); transition: color 0.2s; padding: 4px 16px;
+  font-family: inherit;
+}
+.tab-btn.active { color: var(--accent); }
+.tab-btn svg { width: 22px; height: 22px; }
+.tab-btn span { font-size: 10px; font-weight: 600; letter-spacing: 0.5px; }
+
+/* ── Utilities ──────────────────────────── */
+.label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text3); margin-bottom: 8px; }
+.card { background: var(--card); border-radius: 16px; padding: 16px; border: 1px solid var(--border); margin-bottom: 12px; }
+h2 { font-size: 22px; font-weight: 800; margin-bottom: 20px; letter-spacing: -0.5px; }
+input, textarea {
+  width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border);
+  background: var(--card); color: var(--text1); font-size: 14px; outline: none;
+  font-family: inherit;
+}
+textarea { resize: none; }
+.btn-primary {
+  width: 100%; padding: 16px; border-radius: 14px; border: none; cursor: pointer;
+  background: linear-gradient(135deg, var(--accent), #D44520);
+  color: #fff; font-weight: 700; font-size: 16px; letter-spacing: 0.5px;
+  box-shadow: 0 6px 24px var(--accent-glow);
+  font-family: inherit;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.btn-primary:active { transform: scale(0.97); }
+.btn-green {
+  background: linear-gradient(135deg, var(--green), #22B07A);
+  box-shadow: 0 6px 24px var(--green-glow);
+}
+.btn-back {
+  background: none; border: none; cursor: pointer; color: var(--accent);
+  display: flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 600;
+  margin-bottom: 16px; padding: 0; font-family: inherit;
+}
+.option-grid { display: flex; gap: 8px; margin-bottom: 16px; }
+.option-btn {
+  flex: 1; padding: 12px 0; border-radius: 12px; border: none; cursor: pointer;
+  background: var(--card); color: var(--text2); font-weight: 700; font-size: 14px;
+  transition: all 0.2s; font-family: inherit;
+}
+.option-btn.active {
+  background: var(--accent); color: #fff;
+  box-shadow: 0 4px 20px var(--accent-glow);
+}
+.option-btn.sm { font-size: 12px; padding: 10px 0; }
+
+/* ── Stat Cards ─────────────────────────── */
+.stat-row { display: flex; gap: 10px; margin-bottom: 12px; }
+.stat-card {
+  background: var(--card); border-radius: 16px; padding: 16px;
+  border: 1px solid var(--border); flex: 1; min-width: 0;
+}
+.stat-card .stat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); margin-bottom: 6px; display: flex; align-items: center; gap: 5px; }
+.stat-card .stat-value { font-size: 26px; font-weight: 800; letter-spacing: -1px; }
+.stat-card .stat-sub { font-size: 12px; color: var(--text2); margin-top: 3px; }
+
+/* ── Shot Row ───────────────────────────── */
+.shot-row {
+  display: flex; align-items: center; gap: 10px; padding: 5px 0;
+}
+.shot-num {
+  width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: var(--card); border: 1px solid var(--border);
+  font-size: 12px; font-weight: 700; color: var(--text2); flex-shrink: 0;
+}
+.shot-house { font-size: 11px; color: var(--text3); width: 38px; text-align: center; }
+.shot-btns { display: flex; gap: 8px; flex: 1; justify-content: flex-end; }
+.shot-btn {
+  width: 52px; height: 40px; border-radius: 10px; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--card); color: var(--text3); transition: all 0.15s;
+  font-family: inherit;
+}
+.shot-btn:active { transform: scale(0.93); }
+.shot-btn.hit { background: var(--green); color: #000; box-shadow: 0 0 16px var(--green-glow); }
+.shot-btn.miss { background: var(--red); color: #fff; box-shadow: 0 0 16px var(--red-glow); }
+
+/* ── Shot Grid ──────────────────────────── */
+.shot-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+.shot-cell {
+  aspect-ratio: 1; border-radius: 8px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  border: 1px solid var(--border); background: rgba(255,255,255,0.02);
+}
+.shot-cell.hit { background: var(--green-glow); border-color: rgba(52,211,153,0.3); }
+.shot-cell.miss { background: var(--red-glow); border-color: rgba(239,68,68,0.3); }
+.shot-cell .num { font-size: 11px; font-weight: 700; }
+.shot-cell.hit .num { color: var(--green); }
+.shot-cell.miss .num { color: var(--red); }
+.shot-cell .house { font-size: 8px; color: var(--text3); }
+
+/* ── Session list ───────────────────────── */
+.session-item {
+  width: 100%; background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 14px 16px; margin-bottom: 8px; cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between;
+  text-align: left; transition: background 0.15s; font-family: inherit;
+  color: inherit;
+}
+.session-item:active { background: var(--card-hover); }
+
+/* ── Bar chart ──────────────────────────── */
+.bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.bar-label { font-size: 13px; font-weight: 600; color: var(--text2); width: 50px; }
+.bar-track { flex: 1; height: 10px; background: rgba(255,255,255,0.05); border-radius: 5px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 5px; transition: width 0.6s ease-out; }
+.bar-value { font-size: 12px; font-weight: 700; color: var(--text1); width: 50px; text-align: right; }
+
+/* ── Progress bar ───────────────────────── */
+.progress-bar { background: var(--card); border-radius: 8px; height: 6px; margin-bottom: 18px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 8px; transition: width 0.3s; background: linear-gradient(90deg, var(--accent), var(--accent-soft)); }
+
+/* ── Empty state ────────────────────────── */
+.empty { text-align: center; padding: 50px 20px; }
+.empty .icon { font-size: 56px; margin-bottom: 16px; }
+.empty h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+.empty p { font-size: 14px; color: var(--text2); line-height: 1.5; margin-bottom: 24px; }
+
+/* ── Delete ──────────────────────────────── */
+.btn-delete {
+  width: 100%; padding: 14px; border-radius: 12px; border: 1px solid rgba(239,68,68,0.3);
+  background: transparent; color: var(--red); font-weight: 600; font-size: 14px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  font-family: inherit; margin-top: 12px;
+}
+
+/* ── Animations ─────────────────────────── */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+.fade-in { animation: fadeIn 0.35s ease-out; }
+
+/* ── Export/Import buttons ──────────────── */
+.btn-secondary {
+  width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--border);
+  background: var(--card); color: var(--text2); font-weight: 600; font-size: 14px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  font-family: inherit; margin-top: 8px; transition: background 0.15s;
+}
+.btn-secondary:active { background: var(--card-hover); }
+
+/* ── Modal ──────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.modal {
+  background: var(--card); border-radius: 20px; padding: 24px; width: 100%; max-width: 340px;
+  border: 1px solid var(--border);
+}
+.modal h3 { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+.modal p { font-size: 14px; color: var(--text2); line-height: 1.5; margin-bottom: 20px; }
+.modal-btns { display: flex; gap: 10px; }
+.modal-btns button { flex: 1; padding: 12px; border-radius: 12px; border: none; cursor: pointer; font-weight: 600; font-size: 14px; font-family: inherit; }
+.modal-cancel { background: var(--bg); color: var(--text2); }
+.modal-confirm { background: var(--red); color: #fff; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="ambient"></div>
+  <div class="screen" id="screen"></div>
+  <nav class="tab-bar" id="tabbar"></nav>
+</div>
+
+<script>
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// DATA LAYER — IndexedDB
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const DB_NAME = 'fan32db';
+const DB_VER = 1;
+let db = null;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('sessions')) d.createObjectStore('sessions', { keyPath: 'id' });
+      if (!d.objectStoreNames.contains('profile')) d.createObjectStore('profile', { keyPath: 'key' });
+    };
+    req.onsuccess = e => { db = e.target.result; resolve(db); };
+    req.onerror = e => reject(e);
+  });
+}
+
+function dbGetAll(store) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function dbPut(store, data) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    tx.objectStore(store).put(data);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+function dbDelete(store, key) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    tx.objectStore(store).delete(key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+function dbClear(store) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    tx.objectStore(store).clear();
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// STATE
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let state = {
+  tab: 'home',
+  sessions: [],
+  profile: { key: 'main', name: '', handicap: 27, category: 'A' },
+  selectedSession: null,
+  newSession: null,
+};
+
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function fmtDate(iso) { return new Date(iso).toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'}); }
+function fmtDateShort(iso) { return new Date(iso).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}); }
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// SVG ICONS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const ICO = {
+  target: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`,
+  plus: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
+  chart: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>`,
+  user: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+  back: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>`,
+  check: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+  x: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+  trash: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>`,
+  fire: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>`,
+  trophy: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>`,
+  download: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`,
+  upload: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>`,
+};
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// MINI CHART (SVG)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function miniChart(data, w=280, h=80) {
+  if (!data || data.length < 2) return '';
+  const max = Math.max(...data, 100);
+  const min = Math.min(...data, 0);
+  const range = max - min || 1;
+  const pts = data.map((v,i) => {
+    const x = (i/(data.length-1))*w;
+    const y = h - ((v-min)/range)*(h-10) - 5;
+    return [x,y];
+  });
+  const polyline = pts.map(p=>p.join(',')).join(' ');
+  const area = `M0,${h} ` + pts.map(p=>`L${p[0]},${p[1]}`).join(' ') + ` L${w},${h} Z`;
+  let dots = '';
+  pts.forEach(([x,y],i) => {
+    if (i === pts.length-1) {
+      dots += `<circle cx="${x}" cy="${y}" r="5" fill="var(--accent)"/><circle cx="${x}" cy="${y}" r="8" fill="none" stroke="var(--accent)" stroke-width="1.5" opacity="0.4"/>`;
+    } else {
+      dots += `<circle cx="${x}" cy="${y}" r="2.5" fill="var(--accent-soft)" opacity="0.6"/>`;
+    }
+  });
+  return `<svg width="${w}" height="${h}" style="display:block;overflow:visible"><defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--accent)" stop-opacity="0.3"/><stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs><path d="${area}" fill="url(#cg)"/><polyline points="${polyline}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>${dots}</svg>`;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RENDER ENGINE
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const $ = id => document.getElementById(id);
+const screen = () => $('screen');
+
+function render() {
+  renderTabBar();
+  if (state.selectedSession) return renderDetail();
+  if (state.newSession) return renderNewSession();
+  switch(state.tab) {
+    case 'home': return renderHome();
+    case 'new': return renderNewConfig();
+    case 'stats': return renderStats();
+    case 'profile': return renderProfile();
+  }
+}
+
+function renderTabBar() {
+  const tabs = [
+    { id:'home', icon:ICO.target, label:'Início' },
+    { id:'new', icon:ICO.plus, label:'Registrar' },
+    { id:'stats', icon:ICO.chart, label:'Stats' },
+    { id:'profile', icon:ICO.user, label:'Perfil' },
+  ];
+  $('tabbar').innerHTML = tabs.map(t =>
+    `<button class="tab-btn ${state.tab===t.id&&!state.selectedSession&&!state.newSession?'active':''}" onclick="switchTab('${t.id}')">${t.icon}<span>${t.label}</span></button>`
+  ).join('');
+  $('tabbar').style.display = state.selectedSession ? 'none' : 'flex';
+}
+
+function switchTab(id) {
+  state.tab = id;
+  state.selectedSession = null;
+  state.newSession = null;
+  render();
+  screen().scrollTop = 0;
+}
+
+// ── HOME ────────────────────────────────────
+function renderHome() {
+  const s = state.sessions;
+  const sorted = [...s].sort((a,b) => new Date(b.date)-new Date(a.date));
+  const totalS = s.reduce((a,x)=>a+x.totalShots,0);
+  const totalH = s.reduce((a,x)=>a+x.hits,0);
+  const avg = totalS>0 ? ((totalH/totalS)*100).toFixed(1) : '--';
+  const recent = s.slice(-10).map(x=>x.percentage);
+
+  if (s.length === 0) {
+    screen().innerHTML = `<div class="empty fade-in">
+      <div class="icon">🎯</div>
+      <h3>Pronto para atirar?</h3>
+      <p>Registre suas séries de FAN32 e acompanhe sua evolução no tiro à hélice</p>
+      <button class="btn-primary" onclick="switchTab('new')">Registrar Primeira Série</button>
+    </div>`;
+    return;
+  }
+
+  const avgColor = parseFloat(avg)>=80?'var(--green)':'var(--accent)';
+  let html = `<div class="fade-in">`;
+  // Header
+  html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+    <div>
+      <div style="font-size:14px;color:var(--text3);font-weight:500">Olá${state.profile.name?', '+state.profile.name:''} 👋</div>
+      <div style="font-size:26px;font-weight:900;letter-spacing:-1px;background:linear-gradient(135deg,var(--accent),var(--accent-soft));-webkit-background-clip:text;-webkit-text-fill-color:transparent">FAN32</div>
+    </div>
+    <div style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--accent),#D44520);box-shadow:0 4px 16px var(--accent-glow);color:#fff">${ICO.target}</div>
+  </div>`;
+
+  // Stats
+  html += `<div class="stat-row">
+    <div class="stat-card"><div class="stat-label">${ICO.target} Aproveit.</div><div class="stat-value" style="color:${avgColor}">${avg}%</div></div>
+    <div class="stat-card"><div class="stat-label">${ICO.fire} Séries</div><div class="stat-value">${s.length}</div><div class="stat-sub">${totalH}/${totalS} acertos</div></div>
+  </div>`;
+
+  // Chart
+  if (recent.length >= 2) {
+    html += `<div class="card"><div class="label">Evolução recente</div><div style="display:flex;justify-content:center">${miniChart(recent)}</div></div>`;
+  }
+
+  // Sessions list
+  html += `<div class="label" style="margin-top:8px">Últimas Séries</div>`;
+  sorted.slice(0,15).forEach(s => {
+    const pct = s.totalShots>0?((s.hits/s.totalShots)*100).toFixed(1):'0';
+    const perf = s.hits===s.totalShots;
+    const pColor = parseFloat(pct)>=80?'var(--green)':parseFloat(pct)>=60?'var(--gold)':'var(--red)';
+    html += `<button class="session-item" onclick="viewSession('${s.id}')">
+      <div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:16px;font-weight:800">${s.hits}/${s.totalShots}</span>
+          ${perf?'<span style="font-size:11px;background:var(--gold-glow);color:var(--gold);padding:2px 6px;border-radius:6px;font-weight:700">⭐</span>':''}
+        </div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px">${fmtDate(s.date)} · ${s.distance}m${s.competition?' · '+s.competition:''}</div>
+      </div>
+      <div style="font-size:18px;font-weight:800;color:${pColor}">${pct}%</div>
+    </button>`;
+  });
+
+  html += `</div>`;
+  screen().innerHTML = html;
+}
+
+// ── NEW CONFIG ──────────────────────────────
+function renderNewConfig() {
+  let html = `<div class="fade-in"><h2>Nova Série</h2>`;
+  
+  html += `<div class="label">Hélices na série</div><div class="option-grid">`;
+  [12,18,25,30].forEach(n => {
+    html += `<button class="option-btn ${state._newTotal===n?'active':''}" onclick="setNewOpt('total',${n})">${n}</button>`;
+  });
+  html += `</div>`;
+
+  html += `<div class="label">Distância (metros)</div><div class="option-grid">`;
+  [25,26,27,28,29,30].forEach(d => {
+    html += `<button class="option-btn sm ${state._newDist===d?'active':''}" onclick="setNewOpt('dist',${d})">${d}m</button>`;
+  });
+  html += `</div>`;
+
+  html += `<div style="margin-bottom:12px"><div class="label">Competição (opcional)</div>
+    <input id="inp-comp" placeholder="Ex: Copa do Brasil, Treino..." value="${state._newComp||''}"></div>`;
+  html += `<div style="margin-bottom:20px"><div class="label">Local (opcional)</div>
+    <input id="inp-loc" placeholder="Ex: Clube de Tiro SP..." value="${state._newLoc||''}"></div>`;
+
+  html += `<button class="btn-primary" onclick="startRecording()">Começar Registro →</button>`;
+  html += `</div>`;
+  screen().innerHTML = html;
+}
+
+// Defaults
+if (!state._newTotal) state._newTotal = 18;
+if (!state._newDist) state._newDist = 27;
+
+function setNewOpt(type, val) {
+  if (type==='total') state._newTotal = val;
+  if (type==='dist') state._newDist = val;
+  render();
+}
+
+function startRecording() {
+  const comp = $('inp-comp')?.value || '';
+  const loc = $('inp-loc')?.value || '';
+  state._newComp = comp;
+  state._newLoc = loc;
+  state.newSession = {
+    totalShots: state._newTotal,
+    distance: state._newDist,
+    competition: comp,
+    location: loc,
+    shots: Array(state._newTotal).fill(null),
+    notes: '',
+  };
+  render();
+  screen().scrollTop = 0;
+}
+
+// ── NEW SESSION (RECORDING) ─────────────────
+function renderNewSession() {
+  const ns = state.newSession;
+  const hits = ns.shots.filter(s=>s===1).length;
+  const rec = ns.shots.filter(s=>s!==null).length;
+  const pct = rec>0?((hits/rec)*100).toFixed(1):'0.0';
+
+  let html = `<div class="fade-in">`;
+  html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+    <button class="btn-back" onclick="backToConfig()">${ICO.back} Config</button>
+    <div style="text-align:right"><div style="font-size:24px;font-weight:800">${hits}/${rec}</div><div style="font-size:12px;color:var(--text2)">${pct}%</div></div>
+  </div>`;
+
+  html += `<div class="progress-bar"><div class="progress-fill" style="width:${(rec/ns.totalShots)*100}%"></div></div>`;
+
+  ns.shots.forEach((s,i) => {
+    const house = (i%5)+1;
+    html += `<div class="shot-row">
+      <div class="shot-num">${i+1}</div>
+      <div class="shot-house">Casa ${house}</div>
+      <div class="shot-btns">
+        <button class="shot-btn ${s===1?'hit':''}" onclick="setShot(${i},1)">${ICO.check}</button>
+        <button class="shot-btn ${s===0?'miss':''}" onclick="setShot(${i},0)">${ICO.x}</button>
+      </div>
+    </div>`;
+  });
+
+  html += `<div style="margin-top:14px"><div class="label">Observações</div>
+    <textarea id="inp-notes" rows="2" placeholder="Vento, choke, munição...">${ns.notes||''}</textarea></div>`;
+
+  const allDone = rec === ns.totalShots;
+  html += `<button class="btn-primary ${allDone?'btn-green':''}" style="margin-top:14px;${rec===0?'opacity:0.4;pointer-events:none':''}" onclick="saveSession()">Salvar Série ✓</button>`;
+  html += `</div>`;
+  screen().innerHTML = html;
+}
+
+function setShot(i, val) {
+  const ns = state.newSession;
+  ns.shots[i] = ns.shots[i]===val ? null : val;
+  render();
+}
+
+function backToConfig() {
+  state.newSession = null;
+  render();
+}
+
+async function saveSession() {
+  const ns = state.newSession;
+  const notes = $('inp-notes')?.value || '';
+  const hits = ns.shots.filter(s=>s===1).length;
+  const rec = ns.shots.filter(s=>s!==null).length;
+  const session = {
+    id: genId(),
+    date: new Date().toISOString(),
+    totalShots: ns.totalShots,
+    shots: ns.shots.map(s=>s===null?-1:s),
+    hits,
+    distance: ns.distance,
+    location: ns.location,
+    competition: ns.competition,
+    notes,
+    percentage: rec>0?(hits/rec)*100:0,
+  };
+  state.sessions.push(session);
+  await dbPut('sessions', session);
+  state.newSession = null;
+  state.tab = 'home';
+  state._newComp = '';
+  state._newLoc = '';
+  render();
+  screen().scrollTop = 0;
+}
+
+// ── SESSION DETAIL ──────────────────────────
+function viewSession(id) {
+  state.selectedSession = state.sessions.find(s=>s.id===id);
+  render();
+  screen().scrollTop = 0;
+}
+
+function renderDetail() {
+  const s = state.selectedSession;
+  const pct = s.totalShots>0?((s.hits/s.totalShots)*100).toFixed(1):'0';
+  const perf = s.hits===s.totalShots;
+  const pColor = parseFloat(pct)>=80?'var(--green)':parseFloat(pct)>=60?'var(--gold)':'var(--red)';
+
+  // House stats
+  const hs = {};
+  s.shots.forEach((v,i) => {
+    const h = (i%5)+1;
+    if (!hs[h]) hs[h]={h:0,t:0};
+    if (v!==-1) { hs[h].t++; if (v===1) hs[h].h++; }
+  });
+
+  // Streaks
+  let maxS=0, cur=0;
+  s.shots.forEach(v => { if (v===1){cur++;maxS=Math.max(maxS,cur)} else cur=0; });
+
+  let html = `<div class="fade-in">`;
+  html += `<button class="btn-back" onclick="closeDetail()">${ICO.back} Voltar</button>`;
+  
+  html += `<div style="text-align:center;margin-bottom:24px">`;
+  if (perf) html += `<div style="font-size:14px;font-weight:700;color:var(--gold);margin-bottom:4px">⭐ SÉRIE PERFEITA</div>`;
+  html += `<div style="font-size:48px;font-weight:900;letter-spacing:-2px">${s.hits}/${s.totalShots}</div>`;
+  html += `<div style="font-size:20px;font-weight:600;color:${pColor}">${pct}%</div>`;
+  html += `<div style="font-size:13px;color:var(--text2);margin-top:4px">${fmtDate(s.date)} · ${s.distance}m</div>`;
+  if (s.competition) html += `<div style="font-size:13px;color:var(--accent);margin-top:2px">${s.competition}</div>`;
+  if (s.location) html += `<div style="font-size:12px;color:var(--text3);margin-top:2px">${s.location}</div>`;
+  html += `</div>`;
+
+  // Shot grid
+  html += `<div class="card"><div class="label">Tiros</div><div class="shot-grid">`;
+  s.shots.forEach((v,i) => {
+    const cls = v===1?'hit':v===0?'miss':'';
+    html += `<div class="shot-cell ${cls}"><div class="num">${i+1}</div><div class="house">C${(i%5)+1}</div></div>`;
+  });
+  html += `</div></div>`;
+
+  // House perf
+  html += `<div class="card"><div class="label">Desempenho por Casa</div>`;
+  [1,2,3,4,5].forEach(h => {
+    const st = hs[h]||{h:0,t:0};
+    const hp = st.t>0?(st.h/st.t)*100:0;
+    const c = hp>=80?'var(--green)':hp>=50?'var(--gold)':'var(--red)';
+    html += `<div class="bar-row"><span class="bar-label">Casa ${h}</span><div class="bar-track"><div class="bar-fill" style="width:${hp}%;background:${c}"></div></div><span class="bar-value">${st.h}/${st.t}</span></div>`;
+  });
+  html += `</div>`;
+
+  // Streak
+  html += `<div class="stat-row"><div class="stat-card"><div class="stat-label">${ICO.fire} Sequência</div><div class="stat-value" style="color:var(--gold)">${maxS}</div><div class="stat-sub">acertos seguidos</div></div></div>`;
+
+  if (s.notes) {
+    html += `<div class="card"><div class="label">Observações</div><div style="font-size:14px;color:var(--text2);line-height:1.5">${s.notes}</div></div>`;
+  }
+
+  html += `<button class="btn-delete" onclick="confirmDelete('${s.id}')">${ICO.trash} Excluir Série</button>`;
+  html += `</div>`;
+  screen().innerHTML = html;
+}
+
+function closeDetail() {
+  state.selectedSession = null;
+  render();
+}
+
+function confirmDelete(id) {
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `<div class="modal">
+    <h3>Excluir série?</h3>
+    <p>Esta ação não pode ser desfeita.</p>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="this.closest('.modal-overlay').remove()">Cancelar</button>
+      <button class="modal-confirm" onclick="doDelete('${id}')">Excluir</button>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+}
+
+async function doDelete(id) {
+  document.querySelector('.modal-overlay')?.remove();
+  state.sessions = state.sessions.filter(s=>s.id!==id);
+  await dbDelete('sessions', id);
+  state.selectedSession = null;
+  render();
+}
+
+// ── STATS ───────────────────────────────────
+function renderStats() {
+  const s = state.sessions;
+  if (s.length===0) {
+    screen().innerHTML = `<div class="empty fade-in"><div class="icon">📊</div><h3>Sem dados ainda</h3><p>Registre séries para ver suas estatísticas</p></div>`;
+    return;
+  }
+
+  const totalS = s.reduce((a,x)=>a+x.totalShots,0);
+  const totalH = s.reduce((a,x)=>a+x.hits,0);
+  const avg = totalS>0?((totalH/totalS)*100).toFixed(1):'0';
+  const avgC = parseFloat(avg)>=80?'var(--green)':'var(--accent)';
+  const perfects = s.filter(x=>x.hits===x.totalShots).length;
+  const recent = s.slice(-10).map(x=>x.percentage);
+
+  const last5 = s.slice(-5);
+  const prev5 = s.slice(-10,-5);
+  const l5a = last5.length>0?last5.reduce((a,x)=>a+x.percentage,0)/last5.length:0;
+  const p5a = prev5.length>0?prev5.reduce((a,x)=>a+x.percentage,0)/prev5.length:0;
+  const trend = l5a-p5a;
+  const tColor = trend>=0?'var(--green)':'var(--red)';
+
+  let html = `<div class="fade-in"><h2>Estatísticas</h2>`;
+
+  html += `<div class="stat-row">
+    <div class="stat-card"><div class="stat-label">${ICO.target} Aproveit.</div><div class="stat-value" style="color:${avgC}">${avg}%</div></div>
+    <div class="stat-card"><div class="stat-label">${ICO.fire} Séries</div><div class="stat-value">${s.length}</div><div class="stat-sub">${totalS} tiros</div></div>
+  </div>`;
+  html += `<div class="stat-row">
+    <div class="stat-card"><div class="stat-label">${ICO.trophy} Perfeitas</div><div class="stat-value" style="color:var(--gold)">${perfects}</div></div>
+    <div class="stat-card"><div class="stat-label">📈 Tendência</div><div class="stat-value" style="color:${tColor}">${trend>=0?'+':''}${trend.toFixed(1)}%</div><div class="stat-sub">últimas 5 séries</div></div>
+  </div>`;
+
+  if (recent.length>=2) {
+    html += `<div class="card"><div class="label">Evolução (últimas ${recent.length} séries)</div><div style="display:flex;justify-content:center">${miniChart(recent)}</div></div>`;
+  }
+
+  // House aggregated
+  const ha = {1:{h:0,t:0},2:{h:0,t:0},3:{h:0,t:0},4:{h:0,t:0},5:{h:0,t:0}};
+  s.forEach(ses => ses.shots.forEach((v,i)=>{const house=(i%5)+1;if(v!==-1){ha[house].t++;if(v===1)ha[house].h++;}}));
+
+  html += `<div class="card"><div class="label">Acerto por Casa (geral)</div>`;
+  [1,2,3,4,5].forEach(h => {
+    const st = ha[h];
+    const hp = st.t>0?(st.h/st.t)*100:0;
+    const c = hp>=80?'linear-gradient(90deg,var(--green),#22B07A)':hp>=50?'linear-gradient(90deg,var(--gold),#E8A20C)':'linear-gradient(90deg,var(--red),#DC2626)';
+    html += `<div class="bar-row"><span class="bar-label">Casa ${h}</span><div class="bar-track"><div class="bar-fill" style="width:${hp}%;background:${c}"></div></div><span class="bar-value">${hp.toFixed(0)}%</span></div>`;
+  });
+  html += `</div>`;
+
+  // Monthly
+  const mo = {};
+  s.forEach(ses => {
+    const k = new Date(ses.date).toLocaleDateString('pt-BR',{month:'short',year:'2-digit'});
+    if(!mo[k]) mo[k]={h:0,t:0,c:0};
+    mo[k].h+=ses.hits; mo[k].t+=ses.totalShots; mo[k].c++;
+  });
+  if (Object.keys(mo).length>0) {
+    html += `<div class="card"><div class="label">Resumo Mensal</div>`;
+    Object.entries(mo).reverse().forEach(([k,v]) => {
+      const mp = v.t>0?((v.h/v.t)*100).toFixed(1):'0';
+      html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:14px;font-weight:600;text-transform:capitalize">${k}</span>
+        <div><span style="font-size:14px;font-weight:700;color:var(--accent)">${mp}%</span><span style="font-size:12px;color:var(--text3);margin-left:8px">${v.c} séries</span></div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  html += `</div>`;
+  screen().innerHTML = html;
+}
+
+// ── PROFILE ─────────────────────────────────
+function renderProfile() {
+  const p = state.profile;
+  const s = state.sessions;
+  const totalS = s.reduce((a,x)=>a+x.totalShots,0);
+  const perfects = s.filter(x=>x.hits===x.totalShots).length;
+
+  let html = `<div class="fade-in"><h2>Perfil</h2>`;
+  
+  html += `<div class="card" style="padding:20px">`;
+  html += `<div style="margin-bottom:16px"><div class="label">Nome</div><input id="inp-name" placeholder="Seu nome" value="${p.name}" onchange="updateProfile()"></div>`;
+  
+  html += `<div class="label">Handicap (metros)</div><div class="option-grid">`;
+  [25,26,27,28,29,30].forEach(h => {
+    html += `<button class="option-btn sm ${p.handicap===h?'active':''}" onclick="setProfileOpt('handicap',${h})">${h}m</button>`;
+  });
+  html += `</div>`;
+
+  html += `<div class="label">Categoria</div><div class="option-grid">`;
+  ['Júnior','A','B','C','Veterano'].forEach(c => {
+    html += `<button class="option-btn sm ${p.category===c?'active':''}" onclick="setProfileOpt('category','${c}')">${c}</button>`;
+  });
+  html += `</div></div>`;
+
+  // Summary
+  html += `<div class="card" style="padding:20px"><div class="label">Resumo Geral</div>
+    <div style="display:flex;justify-content:space-around;margin-top:8px">
+      <div style="text-align:center"><div style="font-size:28px;font-weight:800;color:var(--accent)">${s.length}</div><div style="font-size:11px;color:var(--text3)">Séries</div></div>
+      <div style="text-align:center"><div style="font-size:28px;font-weight:800;color:var(--green)">${totalS}</div><div style="font-size:11px;color:var(--text3)">Tiros</div></div>
+      <div style="text-align:center"><div style="font-size:28px;font-weight:800;color:var(--gold)">${perfects}</div><div style="font-size:11px;color:var(--text3)">Perfeitas</div></div>
+    </div>
+  </div>`;
+
+  // Export / Import
+  html += `<button class="btn-secondary" onclick="exportData()">${ICO.download} Exportar Dados (JSON)</button>`;
+  html += `<button class="btn-secondary" onclick="document.getElementById('import-file').click()">${ICO.upload} Importar Dados</button>`;
+  html += `<input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">`;
+  
+  html += `<button class="btn-delete" style="margin-top:20px" onclick="confirmClearAll()">🗑️ Apagar Todos os Dados</button>`;
+
+  html += `<div style="margin-top:24px;text-align:center;color:var(--text3);font-size:11px;line-height:1.5">FAN32 Performance Tracker v1.0<br>Dados armazenados no seu dispositivo</div>`;
+  html += `</div>`;
+  screen().innerHTML = html;
+}
+
+async function updateProfile() {
+  state.profile.name = $('inp-name')?.value || '';
+  await dbPut('profile', state.profile);
+}
+
+async function setProfileOpt(key, val) {
+  state.profile[key] = val;
+  await dbPut('profile', state.profile);
+  render();
+}
+
+function exportData() {
+  const data = { sessions: state.sessions, profile: state.profile, exportDate: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `fan32-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    if (data.sessions && Array.isArray(data.sessions)) {
+      // Merge sessions
+      const existingIds = new Set(state.sessions.map(s=>s.id));
+      let added = 0;
+      for (const ses of data.sessions) {
+        if (!existingIds.has(ses.id)) {
+          state.sessions.push(ses);
+          await dbPut('sessions', ses);
+          added++;
+        }
+      }
+      if (data.profile) {
+        state.profile = { ...state.profile, ...data.profile, key: 'main' };
+        await dbPut('profile', state.profile);
+      }
+      alert(`Importado! ${added} série(s) nova(s) adicionada(s).`);
+      render();
+    }
+  } catch (err) {
+    alert('Erro ao importar: arquivo inválido.');
+  }
+  e.target.value = '';
+}
+
+function confirmClearAll() {
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `<div class="modal">
+    <h3>Apagar tudo?</h3>
+    <p>Todos os seus dados serão removidos permanentemente. Considere exportar um backup antes.</p>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="this.closest('.modal-overlay').remove()">Cancelar</button>
+      <button class="modal-confirm" onclick="doClearAll()">Apagar</button>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+}
+
+async function doClearAll() {
+  document.querySelector('.modal-overlay')?.remove();
+  state.sessions = [];
+  state.profile = { key:'main', name:'', handicap:27, category:'A' };
+  await dbClear('sessions');
+  await dbPut('profile', state.profile);
+  render();
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// INIT
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function init() {
+  await openDB();
+  state.sessions = await dbGetAll('sessions');
+  state.sessions.sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const profiles = await dbGetAll('profile');
+  if (profiles.length > 0) state.profile = profiles[0];
+  render();
+}
+
+init();
+</script>
+</body>
+</html>
