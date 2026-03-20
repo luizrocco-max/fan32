@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FAN32">
+<meta name="theme-color" content="#0C0E12">
+<title>FAN32 Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0C0E12;--card:#14171E;--card-hover:#1A1E28;--border:#232830;--accent:#E8572A;--accent-glow:rgba(232,87,42,0.25);--accent-soft:#F2845C;--green:#34D399;--green-glow:rgba(52,211,153,0.2);--red:#EF4444;--red-glow:rgba(239,68,68,0.15);--gold:#F59E0B;--gold-glow:rgba(245,158,11,0.2);--blue:#60A5FA;--blue-glow:rgba(96,165,250,0.2);--text1:#F0F2F5;--text2:#8B93A1;--text3:#545C6A;--safe-b:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text1);font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none}
+#app{max-width:480px;margin:0 auto;height:100%;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.ambient{position:fixed;top:-120px;left:50%;transform:translateX(-50%);width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,var(--accent-glow) 0%,transparent 70%);pointer-events:none;z-index:0}
+.screen{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;position:relative;z-index:1;padding:20px 16px;padding-bottom:100px}
+.screen::-webkit-scrollbar{display:none}
+.tab-bar{display:flex;justify-content:space-around;align-items:center;background:#0F1117;border-top:1px solid var(--border);padding:8px 0;padding-bottom:max(10px,var(--safe-b));position:relative;z-index:50;flex-shrink:0}
+.tab-btn{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--text3);transition:color .2s;padding:4px 16px;font-family:inherit}
+.tab-btn.active{color:var(--accent)}
+.tab-btn svg{width:22px;height:22px}
+.tab-btn span{font-size:10px;font-weight:600;letter-spacing:.5px}
+.label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1.2px;color:var(--text3);margin-bottom:8px}
+.card{background:var(--card);border-radius:16px;padding:16px;border:1px solid var(--border);margin-bottom:12px}
+h2{font-size:22px;font-weight:800;margin-bottom:20px;letter-spacing:-.5px}
+input,textarea,select{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--text1);font-size:14px;outline:none;font-family:inherit;-webkit-appearance:none;appearance:none}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238B93A1' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+textarea{resize:none}
+.btn-primary{width:100%;padding:16px;border-radius:14px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--accent),#D44520);color:#fff;font-weight:700;font-size:16px;letter-spacing:.5px;box-shadow:0 6px 24px var(--accent-glow);font-family:inherit;transition:transform .15s}
+.btn-primary:active{transform:scale(.97)}
+.btn-green{background:linear-gradient(135deg,var(--green),#22B07A);box-shadow:0 6px 24px var(--green-glow)}
+.btn-back{background:none;border:none;cursor:pointer;color:var(--accent);display:flex;align-items:center;gap:4px;font-size:14px;font-weight:600;margin-bottom:16px;padding:0;font-family:inherit}
+.option-grid{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.option-btn{flex:1;min-width:0;padding:12px 4px;border-radius:12px;border:none;cursor:pointer;background:var(--card);color:var(--text2);font-weight:700;font-size:13px;transition:all .2s;font-family:inherit;white-space:nowrap}
+.option-btn.active{background:var(--accent);color:#fff;box-shadow:0 4px 20px var(--accent-glow)}
+.option-btn.sm{font-size:12px;padding:10px 4px}
+.stat-row{display:flex;gap:10px;margin-bottom:12px}
+.stat-card{background:var(--card);border-radius:16px;padding:16px;border:1px solid var(--border);flex:1;min-width:0}
+.stat-card .stat-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.stat-card .stat-value{font-size:26px;font-weight:800;letter-spacing:-1px}
+.stat-card .stat-sub{font-size:12px;color:var(--text2);margin-top:3px}
+.shot-row{display:flex;align-items:center;gap:6px;padding:5px 0}
+.shot-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--card);border:1px solid var(--border);font-size:11px;font-weight:700;color:var(--text2);flex-shrink:0}
+.shot-house{font-size:10px;color:var(--text3);width:28px;text-align:center;flex-shrink:0}
+.shot-btns{display:flex;gap:6px;flex:1;justify-content:flex-end}
+.shot-btn{height:38px;padding:0 10px;border-radius:10px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:3px;background:var(--card);color:var(--text3);transition:all .15s;font-family:inherit;font-size:11px;font-weight:600}
+.shot-btn:active{transform:scale(.93)}
+.shot-btn.hit1{background:var(--green);color:#000;box-shadow:0 0 12px var(--green-glow)}
+.shot-btn.hit2{background:var(--blue);color:#000;box-shadow:0 0 12px var(--blue-glow)}
+.shot-btn.miss{background:var(--red);color:#fff;box-shadow:0 0 12px var(--red-glow)}
+.shot-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.shot-cell{aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid var(--border);background:rgba(255,255,255,.02)}
+.shot-cell.hit1{background:var(--green-glow);border-color:rgba(52,211,153,.3)}
+.shot-cell.hit2{background:var(--blue-glow);border-color:rgba(96,165,250,.3)}
+.shot-cell.miss{background:var(--red-glow);border-color:rgba(239,68,68,.3)}
+.shot-cell .num{font-size:11px;font-weight:700}
+.shot-cell.hit1 .num{color:var(--green)}
+.shot-cell.hit2 .num{color:var(--blue)}
+.shot-cell.miss .num{color:var(--red)}
+.shot-cell .sub{font-size:7px;color:var(--text3)}
+.session-item{width:100%;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:8px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;text-align:left;transition:background .15s;font-family:inherit;color:inherit}
+.session-item:active{background:var(--card-hover)}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.bar-label{font-size:13px;font-weight:600;color:var(--text2);width:50px}
+.bar-track{flex:1;height:10px;background:rgba(255,255,255,.05);border-radius:5px;overflow:hidden}
+.bar-fill{height:100%;border-radius:5px;transition:width .6s ease-out}
+.bar-value{font-size:12px;font-weight:700;color:var(--text1);width:50px;text-align:right}
+.progress-bar{background:var(--card);border-radius:8px;height:6px;margin-bottom:18px;overflow:hidden}
+.progress-fill{height:100%;border-radius:8px;transition:width .3s;background:linear-gradient(90deg,var(--accent),var(--accent-soft))}
+.empty{text-align:center;padding:50px 20px}
+.empty .icon{font-size:56px;margin-bottom:16px}
+.empty h3{font-size:18px;font-weight:700;margin-bottom:8px}
+.empty p{font-size:14px;color:var(--text2);line-height:1.5;margin-bottom:24px}
+.btn-delete{width:100%;padding:14px;border-radius:12px;border:1px solid rgba(239,68,68,.3);background:transparent;color:var(--red);font-weight:600;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;margin-top:12px}
+.btn-secondary{width:100%;padding:14px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--text2);font-weight:600;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;margin-top:8px;transition:background .15s}
+.btn-secondary:active{background:var(--card-hover)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:var(--card);border-radius:20px;padding:24px;width:100%;max-width:340px;border:1px solid var(--border)}
+.modal h3{font-size:18px;font-weight:700;margin-bottom:12px}
+.modal p{font-size:14px;color:var(--text2);line-height:1.5;margin-bottom:20px}
+.modal-btns{display:flex;gap:10px}
+.modal-btns button{flex:1;padding:12px;border-radius:12px;border:none;cursor:pointer;font-weight:600;font-size:14px;font-family:inherit}
+.modal-cancel{background:var(--bg);color:var(--text2)}
+.modal-confirm{background:var(--red);color:#fff}
+.legend{display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)}
+.legend-dot{width:10px;height:10px;border-radius:3px}
+.info-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.info-tag{font-size:11px;font-weight:600;padding:4px 10px;border-radius:8px;background:rgba(255,255,255,.05);color:var(--text2);border:1px solid var(--border)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.fade-in{animation:fadeIn .35s ease-out}
+.field-group{margin-bottom:14px}
+.field-row{display:flex;gap:8px;margin-bottom:14px}
+.field-row>div{flex:1}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="ambient"></div>
+  <div class="screen" id="screen"></div>
+  <nav class="tab-bar" id="tabbar"></nav>
+</div>
+<script>
+const DB_NAME='fan32db',DB_VER=2;let db=null;
+function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,DB_VER);r.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains('sessions'))d.createObjectStore('sessions',{keyPath:'id'});if(!d.objectStoreNames.contains('profile'))d.createObjectStore('profile',{keyPath:'key'});if(!d.objectStoreNames.contains('guns'))d.createObjectStore('guns',{keyPath:'id'})};r.onsuccess=e=>{db=e.target.result;res(db)};r.onerror=e=>rej(e)})}
+function dbAll(s){return new Promise((r,j)=>{const t=db.transaction(s,'readonly');const q=t.objectStore(s).getAll();q.onsuccess=()=>r(q.result);q.onerror=()=>j(q.error)})}
+function dbPut(s,d){return new Promise((r,j)=>{const t=db.transaction(s,'readwrite');t.objectStore(s).put(d);t.oncomplete=()=>r();t.onerror=()=>j(t.error)})}
+function dbDel(s,k){return new Promise((r,j)=>{const t=db.transaction(s,'readwrite');t.objectStore(s).delete(k);t.oncomplete=()=>r();t.onerror=()=>j(t.error)})}
+function dbClr(s){return new Promise((r,j)=>{const t=db.transaction(s,'readwrite');t.objectStore(s).clear();t.oncomplete=()=>r();t.onerror=()=>j(t.error)})}
+
+let S={tab:'home',sessions:[],guns:[],profile:{key:'main',name:'',handicap:27,category:'A'},sel:null,ns:null,_t:18,_d:27,_comp:'',_loc:'',_choke:'3/4',_ammo:'7½',_gun:'',_weather:'sol'};
+function gid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function fd(iso){return new Date(iso).toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'})}
+function isH(v){return v===1||v===2}
+const WE={sol:'☀️',nublado:'☁️',chuva:'🌧️',vento:'💨',frio:'🥶'};
+
+const I={
+target:`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`,
+plus:`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
+chart:`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>`,
+user:`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+back:`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>`,
+chk:`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+xx:`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+trash:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>`,
+fire:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>`,
+trophy:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>`,
+dl:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`,
+ul:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>`,
+};
+
+function mc(data,w=280,h=80){if(!data||data.length<2)return'';const mx=Math.max(...data,100),mn=Math.min(...data,0),rg=mx-mn||1;const pts=data.map((v,i)=>[(i/(data.length-1))*w,h-((v-mn)/rg)*(h-10)-5]);const pl=pts.map(p=>p.join(',')).join(' ');const ar=`M0,${h} `+pts.map(p=>`L${p[0]},${p[1]}`).join(' ')+` L${w},${h} Z`;let dt='';pts.forEach(([x,y],i)=>{if(i===pts.length-1)dt+=`<circle cx="${x}" cy="${y}" r="5" fill="var(--accent)"/><circle cx="${x}" cy="${y}" r="8" fill="none" stroke="var(--accent)" stroke-width="1.5" opacity="0.4"/>`;else dt+=`<circle cx="${x}" cy="${y}" r="2.5" fill="var(--accent-soft)" opacity="0.6"/>`});return`<svg width="${w}" height="${h}" style="display:block;overflow:visible"><defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--accent)" stop-opacity="0.3"/><stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs><path d="${ar}" fill="url(#cg)"/><polyline points="${pl}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>${dt}</svg>`}
+
+const $=id=>document.getElementById(id);const scr=()=>$('screen');
+
+function R(){rTB();if(S.sel)return rDet();if(S.ns)return rRec();({home:rHome,new:rCfg,stats:rStat,profile:rProf})[S.tab]?.()}
+
+function rTB(){const t=[{id:'home',i:I.target,l:'Início'},{id:'new',i:I.plus,l:'Registrar'},{id:'stats',i:I.chart,l:'Stats'},{id:'profile',i:I.user,l:'Perfil'}];$('tabbar').innerHTML=t.map(x=>`<button class="tab-btn ${S.tab===x.id&&!S.sel&&!S.ns?'active':''}" onclick="sw('${x.id}')">${x.i}<span>${x.l}</span></button>`).join('');$('tabbar').style.display=S.sel?'none':'flex'}
+function sw(id){S.tab=id;S.sel=null;S.ns=null;R();scr().scrollTop=0}
+
+// HOME
+function rHome(){const s=S.sessions,so=[...s].sort((a,b)=>new Date(b.date)-new Date(a.date)),tS=s.reduce((a,x)=>a+x.totalShots,0),tH=s.reduce((a,x)=>a+x.hits,0),av=tS>0?((tH/tS)*100).toFixed(1):'--',rc=s.slice(-10).map(x=>x.percentage);
+if(!s.length){scr().innerHTML=`<div class="empty fade-in"><div class="icon">🎯</div><h3>Pronto para atirar?</h3><p>Registre suas séries de FAN32 e acompanhe sua evolução no tiro à hélice</p><button class="btn-primary" onclick="sw('new')">Registrar Primeira Série</button></div>`;return}
+const ac=parseFloat(av)>=80?'var(--green)':'var(--accent)';let h=`<div class="fade-in"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px"><div><div style="font-size:14px;color:var(--text3);font-weight:500">Olá${S.profile.name?', '+S.profile.name:''} 👋</div><div style="font-size:26px;font-weight:900;letter-spacing:-1px;background:linear-gradient(135deg,var(--accent),var(--accent-soft));-webkit-background-clip:text;-webkit-text-fill-color:transparent">FAN32</div></div><div style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--accent),#D44520);box-shadow:0 4px 16px var(--accent-glow);color:#fff">${I.target}</div></div>`;
+h+=`<div class="stat-row"><div class="stat-card"><div class="stat-label">${I.target} Aproveit.</div><div class="stat-value" style="color:${ac}">${av}%</div></div><div class="stat-card"><div class="stat-label">${I.fire} Séries</div><div class="stat-value">${s.length}</div><div class="stat-sub">${tH}/${tS} acertos</div></div></div>`;
+if(rc.length>=2)h+=`<div class="card"><div class="label">Evolução recente</div><div style="display:flex;justify-content:center">${mc(rc)}</div></div>`;
+h+=`<div class="label" style="margin-top:8px">Últimas Séries</div>`;
+so.slice(0,15).forEach(x=>{const p=x.totalShots>0?((x.hits/x.totalShots)*100).toFixed(1):'0',pf=x.hits===x.totalShots,pc=parseFloat(p)>=80?'var(--green)':parseFloat(p)>=60?'var(--gold)':'var(--red)',wi=WE[x.weather]||'';
+h+=`<button class="session-item" onclick="vs('${x.id}')"><div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:16px;font-weight:800">${x.hits}/${x.totalShots}</span>${pf?'<span style="font-size:11px;background:var(--gold-glow);color:var(--gold);padding:2px 6px;border-radius:6px;font-weight:700">⭐</span>':''}<span style="font-size:12px">${wi}</span></div><div style="font-size:12px;color:var(--text3);margin-top:2px">${fd(x.date)} · ${x.distance}m${x.competition?' · '+x.competition:''}</div></div><div style="font-size:18px;font-weight:800;color:${pc}">${p}%</div></button>`});
+h+=`</div>`;scr().innerHTML=h}
+
+// CONFIG
+function rCfg(){let h=`<div class="fade-in"><h2>Nova Série</h2>`;
+h+=`<div class="label">Hélices na série</div><div class="option-grid">`;[12,18,25,30].forEach(n=>{h+=`<button class="option-btn ${S._t===n?'active':''}" onclick="so('_t',${n})">${n}</button>`});h+=`</div>`;
+h+=`<div class="label">Distância (metros)</div><div class="option-grid">`;[25,26,27,28,29,30].forEach(d=>{h+=`<button class="option-btn sm ${S._d===d?'active':''}" onclick="so('_d',${d})">${d}m</button>`});h+=`</div>`;
+h+=`<div class="label">Choke</div><div class="option-grid">`;['cilindro','1/4','1/2','3/4','full'].forEach(c=>{h+=`<button class="option-btn sm ${S._choke===c?'active':''}" onclick="so('_choke','${c}')">${c}</button>`});h+=`</div>`;
+h+=`<div class="label">Chumbo</div><div class="option-grid">`;['7½','8','9'].forEach(c=>{h+=`<button class="option-btn sm ${S._ammo===c?'active':''}" onclick="so('_ammo','${c}')">${c}</button>`});h+=`</div>`;
+h+=`<div class="label">Clima</div><div class="option-grid">`;['sol','nublado','chuva','vento','frio'].forEach(w=>{h+=`<button class="option-btn sm ${S._weather===w?'active':''}" onclick="so('_weather','${w}')">${WE[w]} ${w}</button>`});h+=`</div>`;
+h+=`<div class="field-group"><div class="label">Arma</div>`;
+if(S.guns.length){h+=`<select id="sel-gun"><option value="">Selecionar...</option>`;S.guns.forEach(g=>{h+=`<option value="${g.id}" ${S._gun===g.id?'selected':''}>${g.name}</option>`});h+=`</select><div style="margin-top:6px;font-size:12px;color:var(--accent);cursor:pointer" onclick="addGun()">+ Nova arma</div>`}
+else h+=`<button class="btn-secondary" onclick="addGun()">+ Cadastrar Arma</button>`;
+h+=`</div>`;
+h+=`<div class="field-row"><div><div class="label">Competição</div><input id="ic" placeholder="Opcional" value="${S._comp||''}"></div><div><div class="label">Local</div><input id="il" placeholder="Opcional" value="${S._loc||''}"></div></div>`;
+h+=`<button class="btn-primary" onclick="startRec()">Começar Registro →</button></div>`;scr().innerHTML=h}
+
+function so(k,v){S[k]=v;R()}
+function addGun(){const o=document.createElement('div');o.className='modal-overlay';o.innerHTML=`<div class="modal"><h3>Nova Arma</h3><div class="field-group"><div class="label">Nome / Modelo</div><input id="gn" placeholder="Ex: CBC KHAN 612"></div><div class="field-group"><div class="label">Calibre</div><input id="gc" placeholder="Ex: 12" value="12"></div><div class="modal-btns"><button class="modal-cancel" onclick="this.closest('.modal-overlay').remove()">Cancelar</button><button style="background:var(--accent);color:#fff" onclick="svGun()">Salvar</button></div></div>`;document.body.appendChild(o)}
+async function svGun(){const n=$('gn')?.value?.trim(),c=$('gc')?.value?.trim();if(!n){alert('Digite o nome');return}const g={id:gid(),name:n+(c?' ('+c+')':'')};S.guns.push(g);await dbPut('guns',g);S._gun=g.id;document.querySelector('.modal-overlay')?.remove();R()}
+
+function startRec(){S._comp=$('ic')?.value||'';S._loc=$('il')?.value||'';S._gun=$('sel-gun')?.value||S._gun||'';S.ns={ts:S._t,dist:S._d,comp:S._comp,loc:S._loc,choke:S._choke,ammo:S._ammo,weather:S._weather,gunId:S._gun,shots:Array(S._t).fill(null),notes:''};R();scr().scrollTop=0}
+
+// RECORDING
+function rRec(){const n=S.ns,hits=n.shots.filter(v=>isH(v)).length,rec=n.shots.filter(v=>v!==null).length,pct=rec>0?((hits/rec)*100).toFixed(1):'0.0';
+let h=`<div class="fade-in"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><button class="btn-back" onclick="S.ns=null;R()">${I.back} Config</button><div style="text-align:right"><div style="font-size:24px;font-weight:800">${hits}/${rec}</div><div style="font-size:12px;color:var(--text2)">${pct}%</div></div></div>`;
+h+=`<div class="legend"><div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>1º tiro</div><div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div>2º tiro</div><div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Errou</div></div>`;
+h+=`<div class="progress-bar"><div class="progress-fill" style="width:${(rec/n.ts)*100}%"></div></div>`;
+n.shots.forEach((v,i)=>{const house=(i%5)+1;h+=`<div class="shot-row"><div class="shot-num">${i+1}</div><div class="shot-house">C${house}</div><div class="shot-btns"><button class="shot-btn ${v===1?'hit1':''}" onclick="ss(${i},1)">1º ${I.chk}</button><button class="shot-btn ${v===2?'hit2':''}" onclick="ss(${i},2)">2º ${I.chk}</button><button class="shot-btn ${v===0?'miss':''}" onclick="ss(${i},0)">${I.xx}</button></div></div>`});
+h+=`<div style="margin-top:14px"><div class="label">Observações</div><textarea id="nt" rows="2" placeholder="Detalhes...">${n.notes||''}</textarea></div>`;
+h+=`<button class="btn-primary ${rec===n.ts?'btn-green':''}" style="margin-top:14px;${rec===0?'opacity:.4;pointer-events:none':''}" onclick="svSes()">Salvar Série ✓</button></div>`;scr().innerHTML=h}
+
+function ss(i,v){S.ns.shots[i]=S.ns.shots[i]===v?null:v;R()}
+
+async function svSes(){const n=S.ns,nt=$('nt')?.value||'',hits=n.shots.filter(v=>isH(v)).length,h1=n.shots.filter(v=>v===1).length,h2=n.shots.filter(v=>v===2).length,rec=n.shots.filter(v=>v!==null).length;
+const ses={id:gid(),date:new Date().toISOString(),totalShots:n.ts,shots:n.shots.map(v=>v===null?-1:v),hits,hit1:h1,hit2:h2,distance:n.dist,location:n.loc,competition:n.comp,notes:nt,percentage:rec>0?(hits/rec)*100:0,choke:n.choke,ammo:n.ammo,weather:n.weather,gunId:n.gunId};
+S.sessions.push(ses);await dbPut('sessions',ses);S.ns=null;S.tab='home';S._comp='';S._loc='';R();scr().scrollTop=0}
+
+// DETAIL
+function vs(id){S.sel=S.sessions.find(x=>x.id===id);R();scr().scrollTop=0}
+function rDet(){const s=S.sel,pct=s.totalShots>0?((s.hits/s.totalShots)*100).toFixed(1):'0',pf=s.hits===s.totalShots,pc=parseFloat(pct)>=80?'var(--green)':parseFloat(pct)>=60?'var(--gold)':'var(--red)',gun=S.guns.find(g=>g.id===s.gunId);
+const hs={};s.shots.forEach((v,i)=>{const c=(i%5)+1;if(!hs[c])hs[c]={h:0,t:0};if(v!==-1){hs[c].t++;if(isH(v))hs[c].h++}});
+let mx=0,cu=0;s.shots.forEach(v=>{if(isH(v)){cu++;mx=Math.max(mx,cu)}else cu=0});
+let h=`<div class="fade-in"><button class="btn-back" onclick="S.sel=null;R()">${I.back} Voltar</button>`;
+h+=`<div style="text-align:center;margin-bottom:20px">`;if(pf)h+=`<div style="font-size:14px;font-weight:700;color:var(--gold);margin-bottom:4px">⭐ SÉRIE PERFEITA</div>`;
+h+=`<div style="font-size:48px;font-weight:900;letter-spacing:-2px">${s.hits}/${s.totalShots}</div><div style="font-size:20px;font-weight:600;color:${pc}">${pct}%</div><div style="font-size:13px;color:var(--text2);margin-top:4px">${fd(s.date)} · ${s.distance}m</div>`;
+if(s.competition)h+=`<div style="font-size:13px;color:var(--accent);margin-top:2px">${s.competition}</div>`;
+if(s.location)h+=`<div style="font-size:12px;color:var(--text3);margin-top:2px">${s.location}</div>`;h+=`</div>`;
+h+=`<div class="info-row">`;if(s.choke)h+=`<span class="info-tag">Choke: ${s.choke}</span>`;if(s.ammo)h+=`<span class="info-tag">Chumbo: ${s.ammo}</span>`;if(s.weather)h+=`<span class="info-tag">${WE[s.weather]||''} ${s.weather}</span>`;if(gun)h+=`<span class="info-tag">🔫 ${gun.name}</span>`;h+=`</div>`;
+h+=`<div class="stat-row" style="margin-top:8px"><div class="stat-card"><div class="stat-label" style="color:var(--green)">● 1º Tiro</div><div class="stat-value" style="color:var(--green)">${s.hit1||0}</div></div><div class="stat-card"><div class="stat-label" style="color:var(--blue)">● 2º Tiro</div><div class="stat-value" style="color:var(--blue)">${s.hit2||0}</div></div><div class="stat-card"><div class="stat-label" style="color:var(--red)">● Erros</div><div class="stat-value" style="color:var(--red)">${s.totalShots-s.hits}</div></div></div>`;
+h+=`<div class="card"><div class="label">Tiros</div><div class="legend"><div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>1º tiro</div><div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div>2º tiro</div><div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Erro</div></div><div class="shot-grid">`;
+s.shots.forEach((v,i)=>{const cl=v===1?'hit1':v===2?'hit2':v===0?'miss':'',sb=v===1?'1º':v===2?'2º':v===0?'✗':'';h+=`<div class="shot-cell ${cl}"><div class="num">${i+1}</div><div class="sub">${sb} C${(i%5)+1}</div></div>`});
+h+=`</div></div>`;
+h+=`<div class="card"><div class="label">Desempenho por Casa</div>`;[1,2,3,4,5].forEach(c=>{const st=hs[c]||{h:0,t:0},hp=st.t>0?(st.h/st.t)*100:0,co=hp>=80?'var(--green)':hp>=50?'var(--gold)':'var(--red)';h+=`<div class="bar-row"><span class="bar-label">Casa ${c}</span><div class="bar-track"><div class="bar-fill" style="width:${hp}%;background:${co}"></div></div><span class="bar-value">${st.h}/${st.t}</span></div>`});h+=`</div>`;
+h+=`<div class="stat-row"><div class="stat-card"><div class="stat-label">${I.fire} Sequência</div><div class="stat-value" style="color:var(--gold)">${mx}</div><div class="stat-sub">acertos seguidos</div></div></div>`;
+if(s.notes)h+=`<div class="card"><div class="label">Observações</div><div style="font-size:14px;color:var(--text2);line-height:1.5">${s.notes}</div></div>`;
+h+=`<button class="btn-delete" onclick="cDel('${s.id}')">${I.trash} Excluir Série</button></div>`;scr().innerHTML=h}
+
+function cDel(id){const o=document.createElement('div');o.className='modal-overlay';o.innerHTML=`<div class="modal"><h3>Excluir série?</h3><p>Esta ação não pode ser desfeita.</p><div class="modal-btns"><button class="modal-cancel" onclick="this.closest('.modal-overlay').remove()">Cancelar</button><button class="modal-confirm" onclick="doDel('${id}')">Excluir</button></div></div>`;document.body.appendChild(o)}
+async function doDel(id){document.querySelector('.modal-overlay')?.remove();S.sessions=S.sessions.filter(x=>x.id!==id);await dbDel('sessions',id);S.sel=null;R()}
+
+// STATS
+function rStat(){const s=S.sessions;if(!s.length){scr().innerHTML=`<div class="empty fade-in"><div class="icon">📊</div><h3>Sem dados</h3><p>Registre séries para ver estatísticas</p></div>`;return}
+const tS=s.reduce((a,x)=>a+x.totalShots,0),tH=s.reduce((a,x)=>a+x.hits,0),t1=s.reduce((a,x)=>a+(x.hit1||0),0),t2=s.reduce((a,x)=>a+(x.hit2||0),0),av=tS>0?((tH/tS)*100).toFixed(1):'0',ac=parseFloat(av)>=80?'var(--green)':'var(--accent)',pf=s.filter(x=>x.hits===x.totalShots).length,rc=s.slice(-10).map(x=>x.percentage);
+const l5=s.slice(-5),p5=s.slice(-10,-5),la=l5.length?l5.reduce((a,x)=>a+x.percentage,0)/l5.length:0,pa=p5.length?p5.reduce((a,x)=>a+x.percentage,0)/p5.length:0,tr=la-pa;
+let h=`<div class="fade-in"><h2>Estatísticas</h2>`;
+h+=`<div class="stat-row"><div class="stat-card"><div class="stat-label">${I.target} Aproveit.</div><div class="stat-value" style="color:${ac}">${av}%</div></div><div class="stat-card"><div class="stat-label">${I.fire} Séries</div><div class="stat-value">${s.length}</div><div class="stat-sub">${tS} tiros</div></div></div>`;
+h+=`<div class="stat-row"><div class="stat-card"><div class="stat-label" style="color:var(--green)">● 1º Tiro</div><div class="stat-value" style="color:var(--green)">${t1}</div><div class="stat-sub">${tS>0?((t1/tS)*100).toFixed(1):0}%</div></div><div class="stat-card"><div class="stat-label" style="color:var(--blue)">● 2º Tiro</div><div class="stat-value" style="color:var(--blue)">${t2}</div><div class="stat-sub">${tS>0?((t2/tS)*100).toFixed(1):0}%</div></div></div>`;
+h+=`<div class="stat-row"><div class="stat-card"><div class="stat-label">${I.trophy} Perfeitas</div><div class="stat-value" style="color:var(--gold)">${pf}</div></div><div class="stat-card"><div class="stat-label">📈 Tendência</div><div class="stat-value" style="color:${tr>=0?'var(--green)':'var(--red)'}">${tr>=0?'+':''}${tr.toFixed(1)}%</div><div class="stat-sub">últimas 5</div></div></div>`;
+if(rc.length>=2)h+=`<div class="card"><div class="label">Evolução</div><div style="display:flex;justify-content:center">${mc(rc)}</div></div>`;
+const ha={1:{h:0,t:0},2:{h:0,t:0},3:{h:0,t:0},4:{h:0,t:0},5:{h:0,t:0}};s.forEach(x=>x.shots.forEach((v,i)=>{const c=(i%5)+1;if(v!==-1){ha[c].t++;if(isH(v))ha[c].h++}}));
+h+=`<div class="card"><div class="label">Acerto por Casa</div>`;[1,2,3,4,5].forEach(c=>{const st=ha[c],hp=st.t>0?(st.h/st.t)*100:0,co=hp>=80?'linear-gradient(90deg,var(--green),#22B07A)':hp>=50?'linear-gradient(90deg,var(--gold),#E8A20C)':'linear-gradient(90deg,var(--red),#DC2626)';h+=`<div class="bar-row"><span class="bar-label">Casa ${c}</span><div class="bar-track"><div class="bar-fill" style="width:${hp}%;background:${co}"></div></div><span class="bar-value">${hp.toFixed(0)}%</span></div>`});h+=`</div>`;
+
+// By choke/ammo/weather
+function byGroup(label,key,emoji){const g={};s.forEach(x=>{if(x[key]){if(!g[x[key]])g[x[key]]={h:0,t:0};g[x[key]].h+=x.hits;g[x[key]].t+=x.totalShots}});if(Object.keys(g).length>1){h+=`<div class="card"><div class="label">${label}</div>`;Object.entries(g).forEach(([k,v])=>{const p=v.t>0?(v.h/v.t)*100:0,c=p>=80?'var(--green)':p>=50?'var(--gold)':'var(--red)';h+=`<div class="bar-row"><span class="bar-label">${emoji?emoji[k]||'':''} ${k}</span><div class="bar-track"><div class="bar-fill" style="width:${p}%;background:${c}"></div></div><span class="bar-value">${p.toFixed(0)}%</span></div>`});h+=`</div>`}}
+byGroup('Por Choke','choke',{});byGroup('Por Chumbo','ammo',{});byGroup('Por Clima','weather',WE);
+
+const mo={};s.forEach(x=>{const k=new Date(x.date).toLocaleDateString('pt-BR',{month:'short',year:'2-digit'});if(!mo[k])mo[k]={h:0,t:0,c:0};mo[k].h+=x.hits;mo[k].t+=x.totalShots;mo[k].c++});
+if(Object.keys(mo).length){h+=`<div class="card"><div class="label">Mensal</div>`;Object.entries(mo).reverse().forEach(([k,v])=>{const mp=v.t>0?((v.h/v.t)*100).toFixed(1):'0';h+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-size:14px;font-weight:600;text-transform:capitalize">${k}</span><div><span style="font-size:14px;font-weight:700;color:var(--accent)">${mp}%</span><span style="font-size:12px;color:var(--text3);margin-left:8px">${v.c} séries</span></div></div>`});h+=`</div>`}
+h+=`</div>`;scr().innerHTML=h}
+
+// PROFILE
+function rProf(){const p=S.profile,s=S.sessions,tS=s.reduce((a,x)=>a+x.totalShots,0),pf=s.filter(x=>x.hits===x.totalShots).length;
+let h=`<div class="fade-in"><h2>Perfil</h2><div class="card" style="padding:20px"><div class="field-group"><div class="label">Nome</div><input id="pn" placeholder="Seu nome" value="${p.name}" onchange="upProf()"></div>`;
+h+=`<div class="label">Handicap</div><div class="option-grid">`;[25,26,27,28,29,30].forEach(v=>{h+=`<button class="option-btn sm ${p.handicap===v?'active':''}" onclick="spOpt('handicap',${v})">${v}m</button>`});h+=`</div>`;
+h+=`<div class="label">Categoria</div><div class="option-grid">`;['Júnior','A','B','C','Veterano'].forEach(c=>{h+=`<button class="option-btn sm ${p.category===c?'active':''}" onclick="spOpt('category','${c}')">${c}</button>`});h+=`</div></div>`;
+h+=`<div class="card" style="padding:20px"><div class="label">Minhas Armas</div>`;
+if(S.guns.length)S.guns.forEach(g=>{h+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-size:14px;font-weight:600">${g.name}</span><button style="background:none;border:none;color:var(--red);cursor:pointer;padding:4px" onclick="delGun('${g.id}')">${I.trash}</button></div>`});
+else h+=`<div style="font-size:13px;color:var(--text3)">Nenhuma arma cadastrada</div>`;
+h+=`<button class="btn-secondary" style="margin-top:8px" onclick="addGun()">+ Adicionar Arma</button></div>`;
+h+=`<div class="card" style="padding:20px"><div class="label">Resumo</div><div style="display:flex;justify-content:space-around;margin-top:8px"><div style="text-align:center"><div style="font-size:28px;font-weight:800;color:var(--accent)">${s.length}</div><div style="font-size:11px;color:var(--text3)">Séries</div></div><div style="text-align:center"><div style="font-size:28px;font-weight:800;color:var(--green)">${tS}</div><div style="font-size:11px;color:var(--text3)">Tiros</div></div><div style="text-align:center"><div style="font-size:28px;font-weight:800;color:var(--gold)">${pf}</div><div style="font-size:11px;color:var(--text3)">Perfeitas</div></div></div></div>`;
+h+=`<button class="btn-secondary" onclick="expD()">${I.dl} Exportar (JSON)</button><button class="btn-secondary" onclick="document.getElementById('imp').click()">${I.ul} Importar</button><input type="file" id="imp" accept=".json" style="display:none" onchange="impD(event)">`;
+h+=`<button class="btn-delete" style="margin-top:20px" onclick="cClr()">🗑️ Apagar Tudo</button>`;
+h+=`<div style="margin-top:24px;text-align:center;color:var(--text3);font-size:11px;line-height:1.5">FAN32 Tracker v2.0<br>Dados no seu dispositivo</div></div>`;scr().innerHTML=h}
+
+async function upProf(){S.profile.name=$('pn')?.value||'';await dbPut('profile',S.profile)}
+async function spOpt(k,v){S.profile[k]=v;await dbPut('profile',S.profile);R()}
+async function delGun(id){S.guns=S.guns.filter(g=>g.id!==id);await dbDel('guns',id);R()}
+
+function expD(){const d={sessions:S.sessions,profile:S.profile,guns:S.guns,v:2};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=`fan32-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(u)}
+async function impD(e){const f=e.target.files[0];if(!f)return;try{const t=await f.text(),d=JSON.parse(t);if(d.sessions){const ids=new Set(S.sessions.map(x=>x.id));let n=0;for(const x of d.sessions){if(!ids.has(x.id)){S.sessions.push(x);await dbPut('sessions',x);n++}}if(d.guns)for(const g of d.guns){if(!S.guns.find(x=>x.id===g.id)){S.guns.push(g);await dbPut('guns',g)}}if(d.profile){S.profile={...S.profile,...d.profile,key:'main'};await dbPut('profile',S.profile)}alert(`${n} série(s) importada(s)!`);R()}}catch(er){alert('Arquivo inválido')}e.target.value=''}
+function cClr(){const o=document.createElement('div');o.className='modal-overlay';o.innerHTML=`<div class="modal"><h3>Apagar tudo?</h3><p>Dados removidos permanentemente.</p><div class="modal-btns"><button class="modal-cancel" onclick="this.closest('.modal-overlay').remove()">Cancelar</button><button class="modal-confirm" onclick="doClr()">Apagar</button></div></div>`;document.body.appendChild(o)}
+async function doClr(){document.querySelector('.modal-overlay')?.remove();S.sessions=[];S.guns=[];S.profile={key:'main',name:'',handicap:27,category:'A'};await dbClr('sessions');await dbClr('guns');await dbPut('profile',S.profile);R()}
+
+async function init(){await openDB();S.sessions=await dbAll('sessions');S.sessions.sort((a,b)=>new Date(a.date)-new Date(b.date));const pr=await dbAll('profile');if(pr.length)S.profile=pr[0];try{S.guns=await dbAll('guns')}catch(e){S.guns=[]}R()}
+init();
+</script>
+</body>
+</html>
